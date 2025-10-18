@@ -1,9 +1,9 @@
 package models
 
 type Course struct {
-	ID int `json:"id"`
-	Title string `json:"title"`
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
 	Description string `json:"description"`
-	Price int `json:"price"`
-	Author Author `json:"author"`
+	Price       int    `json:"price"`
+	Author      Author `json:"author"`
 }
