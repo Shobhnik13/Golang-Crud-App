@@ -5,6 +5,9 @@ import (
 	"course/models"
 	"encoding/json"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 func GetCourses(w http.ResponseWriter, r *http.Request) {
@@ -53,5 +56,68 @@ func CreateCourse(w http.ResponseWriter, r *http.Request) {
 
 func GetCourseByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	
+
+	params := mux.Vars(r)
+	id, _ := strconv.Atoi(params["id"])
+
+	for _, course := range data.Courses {
+		if course.ID == id {
+			json.NewEncoder(w).Encode(course)
+			return
+		}
+	}
+
+	http.Error(w, "Course not found", http.StatusNotFound)
+}
+
+func UpdateCourse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	params := mux.Vars(r)
+	idString := params["id"]
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		http.Error(w, "Invalid course ID", http.StatusBadRequest)
+		return
+	}
+
+	var updatedCourse models.Course
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&updatedCourse)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+	for i, course := range data.Courses {
+		if course.ID == id {
+			updatedCourse.ID = id
+			data.Courses[i] = updatedCourse
+			json.NewEncoder(w).Encode(updatedCourse)
+			return
+		}
+	}
+	http.Error(w, "Course not found", http.StatusNotFound)
+}
+
+func DeleteCourse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	params := mux.Vars(r)
+	idString := params["id"]
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		http.Error(w, "Invalid course ID", http.StatusBadRequest)
+		return
+	}
+
+	for i, course := range data.Courses {
+		if course.ID == id {
+			data.Courses = append(data.Courses[:i], data.Courses[i+1:]...)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	}
+	http.Error(w, "Course not found", http.StatusNotFound)
 }
